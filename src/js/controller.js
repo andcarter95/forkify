@@ -1,5 +1,6 @@
 import { async } from 'regenerator-runtime';
 import * as model from './model.js'
+import { MODAL_CLOSE_SEC } from './Views/config.js';
 import recipeView from './Views/recipeView.js';
 import searchView from './Views/searchView.js';
 import resultsView from './Views/resultsView.js';
@@ -9,6 +10,7 @@ import addRecipeView from './Views/addRecipeView.js';
 
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
+import { MODAL_CLOSE_SEC } from './Views/config.js';
 
 const controlRecipes = async function () {
   try {
@@ -82,8 +84,23 @@ const controlBookmarks = function(){
 
 const controlAddRecipe= async function(newRecipe){
   try{
-    console.log(newRecipe);
+    // Show loading spinner
+    addRecipeView.renderSpinner()
+    // upload the recipe data
     await model.uploadRecipe(newRecipe)
+    // render recipe
+    recipeView.render(model.state.recipe)
+    // success message
+    addRecipeView.renderMessage()
+    // Render bookmark view
+    bookmarksView.render(model.state.bookmarks)
+    // Change ID in URL
+    window.history.pushState(null,'', `#${model.state.recipe.id}`)
+    // close form
+    setTimeout(function(){
+      addRecipeView._toggleWindow()
+    }, MODAL_CLOSE_SEC * 1000)
+
   } catch(err){
     console.error(err)
     addRecipeView.renderError(err.message)
